@@ -27,6 +27,7 @@ class YoloProcess(Process):
             command = self.commands.get()
             if command == "exit":
                 print("2: Test process govna prinal huini i okruglyaetsa")
+                self.send_im.put("exit")
                 break
             if command == "image":
                 im = self.commands.get()
