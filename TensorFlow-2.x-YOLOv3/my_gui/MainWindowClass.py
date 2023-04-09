@@ -1,4 +1,6 @@
 import sys
+import cv2
+from pygrabber.dshow_graph import FilterGraph
 from multiprocessing import Queue, Lock
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
@@ -24,9 +26,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.to_yolo = queue_to_yolo
         self.from_yolo = queue_from_yolo
         self.lock = lock
+        self.graph = FilterGraph()
+
+        self.videoDevices.addItems(["File System"] + self.graph.get_input_devices())
 
         self.nextButton.pressed.connect(self.send_image_to_yolo)
         self.emitter.image_available.connect(self.get_image_from_yolo)
+
 
 
     def send_image_to_yolo(self):
@@ -54,9 +60,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.imageLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.lock.release()
 
-    def exit_(self):
+    def closeEvent(self, event):
         self.lock.acquire(block=True)
         self.to_yolo.put("exit")
-        while self.from_yolo.get() != "exit":
+        while True:
+            ex_ = self.from_yolo.get()
+            print(ex_ == "exit")
+            if ex_ == "exit":
+                break
             continue
-        exit(0)
+        QtWidgets.QMainWindow.closeEvent(self, event)
