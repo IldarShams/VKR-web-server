@@ -32,7 +32,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.nextButton.pressed.connect(self.send_image_to_yolo)
         self.emitter.image_available.connect(self.get_image_from_yolo)
+        self.browserPathButton.pressed.connect(self.getImagesDirectory)
 
+    def getImagesDirectory(self):
+        self.browserPathLineEdit.setText(QtWidgets.QFileDialog.getExistingDirectory(self, "Выберете папку с изображениями",
+                                                   "./", QtWidgets.QFileDialog.Option.ShowDirsOnly))
 
 
     def send_image_to_yolo(self):
