@@ -1,2 +1,4 @@
 *.pyc
-model_data
+model_data/yolov3.weights
+model_data/coco
+model_data/mars-small128.pb
