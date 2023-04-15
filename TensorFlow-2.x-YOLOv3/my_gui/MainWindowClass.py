@@ -27,10 +27,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lock = lock
         self.graph = FilterGraph()
 
-        self.videoDevices.addItems(["File System"] + self.graph.get_input_devices())
+        self.currentImage = None
+        self.currentImageYolo = None
+
+        try:
+            self.videoDevices.addItems(["File System"] + self.graph.get_input_devices())
+        except Exception as e:
+            self.videoDevices.addItems(["File System"])
 
         self.nextButton.pressed.connect(self.send_image_to_yolo)
-        self.emitter.image_available.connect(self.get_image_from_yolo)
+        self.emitter.image_available.connect(self.getImageFromYolo)
         self.browserPathButton.pressed.connect(self.getImagesDirectory)
         self.videoDevices.currentIndexChanged.connect(self.videoDeviceChanged)
         self.browserPathLineEdit.textChanged.connect(self.imagesPathChanged)
@@ -38,12 +44,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.browserPathLineEdit.setText("")
 
         # test section
+        self.rb = QtWidgets.QRadioButton()
         self.l = QtWidgets.QLabel()
         self.test = QtWidgets.QComboBox()
         self.but = QtWidgets.QPushButton()
         self.but.setEnabled(True)
 
         # print(self.imageLabel.size[0])
+        self.rb.isChecked()
         self.lineedit = QtWidgets.QLineEdit()
         # test section
 
@@ -74,10 +82,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def send_image_to_yolo(self):
         try:
             im = self.images.__next__()
-            self.lock.acquire()
-            # print(self.images.__next__())
-            self.to_yolo.put("image")
-            self.to_yolo.put(im)
+            self.currentImage = im
+            self.currentImageYolo = None
+            if self.showBoxesRB.isChecked():
+                self.lock.acquire()
+                # print(self.images.__next__())
+                self.to_yolo.put("image")
+                print("Отправка изображения к yolo")
+                self.to_yolo.put(im)
+            self.putImageToLabel()
         except StopIteration as si:
             print(str(si))
             self.imagesPathChanged()
@@ -90,8 +103,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             print("Что то не так!")
         # "C:\\Users\\User\\PycharmProjects\\CNN1\\TensorFlow-2.x-YOLOv3\\IMAGES\\B0015_0001.png"
 
-    def get_image_from_yolo(self):
-        image = self.resizeImage(self.from_yolo.get())
+    def getImageFromYolo(self):
+        self.currentImageYolo = self.resizeImage(self.from_yolo.get())
+        self.lock.release()
+        self.putImageToLabel()
+
+    def putImageToLabel(self):
+        if self.currentImageYolo is None or not self.showBoxesRB.isChecked():
+            image = self.resizeImage(cv2.imread(self.currentImage))
+        else:
+            image = self.currentImageYolo
+        self.showImage(image)
+
+    def showImage(self, image):
         qformat = QtGui.QImage.Format.Format_Indexed8
         if len(image.shape) == 3:
             if image.shape[2] == 4:
@@ -106,7 +130,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             img = img.rgbSwapped()
             self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(img))
             self.imageLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.lock.release()
 
     def closeEvent(self, event):
         # self.lock.acquire(block=True)

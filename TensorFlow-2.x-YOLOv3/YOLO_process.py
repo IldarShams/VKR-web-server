@@ -38,4 +38,4 @@ class YoloProcess(Process):
                 print("2: Изображение обработано")
                 self.send_im.put(image)
                 self.pipe_to_emitter.send("OK")
-        exit(0)
+            exit(0)
