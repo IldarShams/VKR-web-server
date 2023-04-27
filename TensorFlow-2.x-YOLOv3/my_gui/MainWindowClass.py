@@ -68,20 +68,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.browserPathLineEdit.setEnabled(True)
             self.nextButton.setEnabled(True)
             self.backButton.setEnabled(True)
-            # self.device = None
+            self.device = None
 
         else:
             self.browserPathButton.setEnabled(False)
             self.browserPathLineEdit.setEnabled(False)
             self.nextButton.setEnabled(False)
             self.backButton.setEnabled(False)
-            # self.device = self.graph.get_input_devices().index(self.videoDevices.currentText())
-            # cap = cv2.VideoCapture(self.device)
-            # if not cap.isOpened():
-            #     print("Main: Cannot open camera")
+            self.videoProcessing()
             # self.to_yolo.put("video")
-            # print("Main: Отправка cap'a к yolo")
-            # self.to_yolo.put(cap)
+            # print("Main: Отправка девайса к yolo")
+            # self.to_yolo.put(self.videoDevices.currentText())
 
     # Переход к след изобр в папке, обработка в йоло
     def nextImage(self, direction: bool):
@@ -174,6 +171,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # Секция ГУИ
 
     # Секция йоло
+    def videoProcessing(self):
+        device = self.graph.get_input_devices().index(self.videoDevices.currentText())
+        cap = cv2.VideoCapture(device)
+        if not cap.isOpened():
+            print("Cannot open camera")
+            exit()
+        while True:
+            # Capture frame-by-frame
+            ret, frame = cap.read()
+            # if frame is read correctly ret is True
+            if not ret:
+                print("Can't receive frame (stream end?). Exiting ...")
+                break
+            # Our operations on the frame come here
+
+            self.to_yolo.put("video")
+            self.to_yolo.put(frame)
+            frame = self.from_yolo.get()
+
+            # Display the resulting frame
+            cv2.imshow('frame', frame)
+            if cv2.waitKey(1) == ord('q'):
+                break
+        # When everything done, release the capture
+        cap.release()
+        cv2.destroyAllWindows()
+
     def sendImageToYolo(self, im: str):
         self.to_yolo.put("image")
         print("Main: Отправка изображения к yolo")
