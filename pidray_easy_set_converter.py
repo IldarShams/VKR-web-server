@@ -4,8 +4,9 @@ import shutil
 import xml.etree.ElementTree as ET
 
 dataset_dirs = "D:/NNP/pidray/pidray/"
-dataset_dir = "D:/NNP/pidray/pidray/easy/"
-sorted_dataset_dir = "D:/NNP/pidray_sorted/"
+dataset_annot = 'annotations/xray_train.json'
+dataset_dir = "D:/NNP/pidray/pidray/train/"
+sorted_dataset_dir = "D:/NNP/pidray_train_sorted/"
 
 def get_category_by_id(categs, id):
     for cat in categs:
@@ -13,29 +14,31 @@ def get_category_by_id(categs, id):
             return cat['name']
     return None
 
-with open(dataset_dirs+'annotations/xray_test_easy.json','r') as xray_easy:
+with open(dataset_dirs+dataset_annot,'r') as xray_easy:
     x_e = json.load(xray_easy)
 
     categories = x_e['categories']
     # for cat in categories:
     #     os.mkdir(sorted_dataset_dir+cat['name']+"/")
-    print(categories)
+    # print(categories)
 
     images = x_e['images']
     annots = x_e['annotations']
+    if not (os.path.isdir("D:/NNP/pidray_train_sorted/")):
+        os.mkdir(sorted_dataset_dir)
     # print(get_category_by_id(categories,1))
     # print(json.dumps(categories, indent=4))
+    print(len(images))
     for j in range(len(images)):
-        break
+        if not j == 21029:
+            continue
         im = [i for i in images if i['id'] == j][0]
-        annot = [i for i in annots if i['image_id'] == j][0]
+        annot = [i for i in annots if i['image_id'] == j]
+        # break
         file_name = im['file_name'].split('.png')[0] + ".xml"
         old_im_path = dataset_dir + im['file_name']
-        new_im_path = sorted_dataset_dir +\
-            get_category_by_id(categories, annot['category_id']) +\
-                '/' + im['file_name']
-        new_img_xml_path = sorted_dataset_dir +\
-            get_category_by_id(categories, annot['category_id']) + '/' + file_name
+        new_im_path = sorted_dataset_dir + im['file_name']
+        new_img_xml_path = sorted_dataset_dir + file_name
 
         # print(old_im_path, new_im_path, new_img_xml_path)
         # break
@@ -43,7 +46,7 @@ with open(dataset_dirs+'annotations/xray_test_easy.json','r') as xray_easy:
         with open(new_img_xml_path, 'w') as xml_doc:
             root = ET.Element('annotation')
             folder_tag = ET.SubElement(root, 'folder')
-            folder_tag.text = get_category_by_id(categories, annot['category_id'])
+            folder_tag.text = sorted_dataset_dir #get_category_by_id(categories, annot['category_id'])
             file_name_tag = ET.SubElement(root, 'filename')
             file_name_tag.text = im['file_name']
             path_tag = ET.SubElement(root, 'path')
@@ -64,29 +67,30 @@ with open(dataset_dirs+'annotations/xray_test_easy.json','r') as xray_easy:
             segmented_tag = ET.SubElement(root, 'segmented')
             segmented_tag.text = '0'
 
-            object_tag = ET.SubElement(root, 'object')
-            name_tag = ET.SubElement(object_tag, 'name')
-            name_tag.text = folder_tag.text
-            pose_tag = ET.SubElement(object_tag, 'pose')
-            pose_tag.text = 'Unspecified'
-            truncated_tag = ET.SubElement(object_tag, 'truncated')
-            truncated_tag.text = '0'
-            difficult_tag = ET.SubElement(object_tag, 'difficult')
-            difficult_tag.text = '0'
+            for object in annot:
+                object_tag = ET.SubElement(root, 'object')
+                name_tag = ET.SubElement(object_tag, 'name')
+                name_tag.text = get_category_by_id(categories, object['category_id'])
+                pose_tag = ET.SubElement(object_tag, 'pose')
+                pose_tag.text = 'Unspecified'
+                truncated_tag = ET.SubElement(object_tag, 'truncated')
+                truncated_tag.text = '0'
+                difficult_tag = ET.SubElement(object_tag, 'difficult')
+                difficult_tag.text = '0'
 
-            bndbox_tag = ET.SubElement(object_tag, 'bndbox')
-            xmin_tag = ET.SubElement(bndbox_tag, 'xmin')
-            xmin_tag.text = str(int(annot['bbox'][0]))
-            ymin_tag = ET.SubElement(bndbox_tag, 'ymin')
-            ymin_tag.text = str(int(annot['bbox'][1]))
-            xmax_tag = ET.SubElement(bndbox_tag, 'xmax')
-            xmax_tag.text = str(int(annot['bbox'][0]) + int(annot['bbox'][2]))
-            ymax_tag = ET.SubElement(bndbox_tag, 'ymax')
-            ymax_tag.text = str(int(annot['bbox'][1]) + int(annot['bbox'][3]))
+                bndbox_tag = ET.SubElement(object_tag, 'bndbox')
+                xmin_tag = ET.SubElement(bndbox_tag, 'xmin')
+                xmin_tag.text = str(int(object['bbox'][0]))
+                ymin_tag = ET.SubElement(bndbox_tag, 'ymin')
+                ymin_tag.text = str(int(object['bbox'][1]))
+                xmax_tag = ET.SubElement(bndbox_tag, 'xmax')
+                xmax_tag.text = str(int(object['bbox'][0]) + int(object['bbox'][2]))
+                ymax_tag = ET.SubElement(bndbox_tag, 'ymax')
+                ymax_tag.text = str(int(object['bbox'][1]) + int(object['bbox'][3]))
 
             xml_doc.write(ET.tostring(root, encoding="unicode"))
             xml_doc.close()
-
+        break
     # for anotations in x_e['anotations']:
     #     i = i + 1
     #     print(json.dumps(anotations['category_id'], indent=4) + '\n' + json.dumps(anotations['bbox'], indent=4))
