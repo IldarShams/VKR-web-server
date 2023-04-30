@@ -1,17 +1,18 @@
 import sys
 import cv2
+from datetime import datetime
 import os
 from pygrabber.dshow_graph import FilterGraph
 from multiprocessing import Queue, Lock
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
-
 from PyQt6.QtCore import Qt
-
+from my_gui.config import *
 from my_gui.Emitter import *
+import anvil.server
 
 qt_creator_file = "./my_gui/test.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
-
+anvil.server.connect("client_EC6WNV3EV2M5WPBYZKU6R4UU-VKPUFIU4RXBWF7MK")
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, queue_to_yolo: Queue, queue_from_yolo: Queue, emitter: Emitter, lock: Lock):
@@ -43,8 +44,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.videoDevices.currentIndexChanged.connect(self.videoDeviceChanged)
         self.browserPathLineEdit.textChanged.connect(self.imagesPathChanged)
         self.showBoxesRB.clicked.connect(self.showBB_changed)
+        self.saveButton.clicked.connect(self.saveImage)
         self.images = None
         self.browserPathLineEdit.setText("")
+        self.testBut.clicked.connect(self.test)
+
 
         # test section
         self.rb = QtWidgets.QRadioButton()
@@ -60,7 +64,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.rb.clicked()
         self.lineedit = QtWidgets.QLineEdit()
     # test section
+    #server_UEMV3BW3LSDTQKDRMBFZRZKQ-VKPUFIU4RXBWF7MK
+    #client_EC6WNV3EV2M5WPBYZKU6R4UU-VKPUFIU4RXBWF7MK
 #Секция ГУИ
+    def test(self):
+        print(anvil.server.call('test'))
+
     # Изменение способа ввода изображения
     def videoDeviceChanged(self):
         if self.videoDevices.currentIndex() == 0:
@@ -253,5 +262,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             print(self.currentImage)
         except os.error:
             print("os.error")
+
+    def saveImage(self):
+        if self.showBoxesRB.isChecked() and not self.currentImageYolo is None:
+            now = datetime.now()
+            path = os.path.join(SAVE_DIR, now.strftime("%d_%m_%Y_%H_%M_%S") + ".jpg")
+
+            print("Main: Сохранение " + path)
+            cv2.imwrite(os.path.join(SAVE_DIR, path), self.currentImageYolo)
+
+            print("Main: Сохранён " + path)
+
 
 # Секция утилиты

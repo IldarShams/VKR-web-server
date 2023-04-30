@@ -25,8 +25,8 @@ if __name__ == "__main__":
 
     # запуск процесса нейронки
     emitter = Emitter(mother_pipe)
-    yolo = YoloProcess(queue_form_win_to_yolo, queue_from_yolo_to_win, child_pipe, lock)
-    yolo.start()
+    # yolo = YoloProcess(queue_form_win_to_yolo, queue_from_yolo_to_win, child_pipe, lock)
+    # yolo.start()
 
     window = MainWindow(queue_form_win_to_yolo, queue_from_yolo_to_win, emitter, lock)
     window.show()
