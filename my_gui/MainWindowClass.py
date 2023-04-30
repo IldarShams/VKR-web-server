@@ -8,6 +8,8 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from PyQt6.QtCore import Qt
 from my_gui.config import *
 from my_gui.Emitter import *
+from TensorFlowYOLOv3.yolov3.utils import *
+from TensorFlowYOLOv3.yolov3.configs import *
 import anvil.server
 
 qt_creator_file = "./my_gui/test.ui"
@@ -44,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.videoDevices.currentIndexChanged.connect(self.videoDeviceChanged)
         self.browserPathLineEdit.textChanged.connect(self.imagesPathChanged)
         self.showBoxesRB.clicked.connect(self.showBB_changed)
-        # self.saveButton.clicked.connect(self.saveImage)
+        self.saveButton.clicked.connect(self.saveImage)
         self.images = None
         self.browserPathLineEdit.setText("")
         # self.testBut.clicked.connect(self.test)
@@ -68,7 +70,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     #client_EC6WNV3EV2M5WPBYZKU6R4UU-VKPUFIU4RXBWF7MK
 #Секция ГУИ
     # def test(self):
-    #     print(anvil.server.call('test'))
+    #     try:
+    #         im = cv2.imread(self.images[self.currentImage])
+    #         _, bts = cv2.imencode('.webp', im)
+    #         # print(type(bts))
+    #         # bts = bts.tostring()
+    #         # print(bts)
+    #         # print(type(bts))
+    #         # ext = "." + (self.images[self.currentImage]).split(".")[1]
+    #         # print(ext)
+    #         # bytes = cv2.imencode(ext, im)
+    #         anvil.server.call('process_image', bts)
+    #     except Exception as e:
+    #         print(e)
 
     # Изменение способа ввода изображения
     def videoDeviceChanged(self):
@@ -197,10 +211,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.to_yolo.put("video")
             self.to_yolo.put(frame)
-            frame = self.from_yolo.get()
+
+            frameYolo = self.resizeImage(
+                draw_bbox(frame,
+                          self.from_yolo.get(),
+                          CLASSES=TRAIN_CLASSES,
+                          rectangle_colors=(255, 0, 0))
+            )
 
             # Display the resulting frame
-            cv2.imshow('frame', frame)
+            cv2.imshow('frame', frameYolo)
             if cv2.waitKey(1) == ord('q'):
                 break
         # When everything done, release the capture
@@ -213,10 +233,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.to_yolo.put(im)
 
     def getImageFromYolo(self):
-        self.currentImageYolo = self.resizeImage(self.from_yolo.get())
-        print("Main: релиз лока")
-        self.lock.release()
-        self.putImageToLabel()
+        try:
+
+            self.currentImageYolo = self.resizeImage(
+                draw_bbox(cv2.imread(self.images[self.currentImage]),
+                          self.from_yolo.get(),
+                          CLASSES=TRAIN_CLASSES,
+                          rectangle_colors=(255, 0, 0))
+            )
+            print("Main: релиз лока")
+            self.lock.release()
+            self.putImageToLabel()
+        except Exception as e:
+            print(e)
+
     # Секция йоло
 
     # Секция утилиты

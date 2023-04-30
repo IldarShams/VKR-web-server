@@ -36,14 +36,14 @@ class YoloProcess(Process):
                 print("YOLO: Изображение получено")
                 # print(im)
                 # cv2.imshow("im", im)
-                image = detect_image(yolo, im, "./IMAGES/plate_1_detect.jpg", input_size=YOLO_INPUT_SIZE,
+                bboxes = detect_image(yolo, im, "./IMAGES/plate_1_detect.jpg", input_size=YOLO_INPUT_SIZE,
                                      show=True, CLASSES=TRAIN_CLASSES, rectangle_colors=(255, 0, 0))
                 print("YOLO: Изображение обработано")
-                self.send_im.put(image)
+                self.send_im.put(bboxes)
                 self.pipe_to_emitter.send("OK")
             if command == "video":
                 im = self.commands.get()
-                image = detect_image_for_vid(yolo, im, "./IMAGES/plate_1_detect.jpg", input_size=YOLO_INPUT_SIZE,
+                bboxes = detect_image_for_vid(yolo, im, "./IMAGES/plate_1_detect.jpg", input_size=YOLO_INPUT_SIZE,
                                      show=True, CLASSES=TRAIN_CLASSES, rectangle_colors=(255, 0, 0))
-                self.send_im.put(image)
+                self.send_im.put(bboxes)
             # exit(0)

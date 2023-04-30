@@ -13,11 +13,11 @@ class Emitter(QThread):
         while True:
             try:
                 signal = self.yolo_data.recv()
-                print("3: Получен сигнал от йоло:", signal)
+                print("Emitter: Получен сигнал от йоло:", signal)
             except EOFError:
                 print("Emitter: Что то пошло не так")
             else:
-                print("3: Отправка сигнала окну")
+                print("Emitter: Отправка сигнала окну")
                 self.image_available.emit()
 
 
