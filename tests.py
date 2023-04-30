@@ -334,7 +334,7 @@ cv2.destroyAllWindows()
 
 # import cv2
 #
-# im = cv2.imread("C:\\Users\\User\\PycharmProjects\\CNN1\\TensorFlow-2.x-YOLOv3\\IMAGES\\B0011_0001.png")
+# im = cv2.imread("C:\\Users\\User\\PycharmProjects\\CNN1\\TensorFlowYOLOv3\\IMAGES\\B0011_0001.png")
 # print(im.shape)
 # print(im.shape[0])
 # print(im.shape[1])
