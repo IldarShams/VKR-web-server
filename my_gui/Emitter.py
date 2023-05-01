@@ -1,6 +1,8 @@
 from PyQt6.QtCore import QThread, pyqtSignal
 from multiprocessing import Pipe
+import anvil.server
 
+anvil.server.connect("client_EC6WNV3EV2M5WPBYZKU6R4UU-VKPUFIU4RXBWF7MK")
 class Emitter(QThread):
 
     image_available = pyqtSignal()
@@ -12,8 +14,9 @@ class Emitter(QThread):
     def run(self):
         while True:
             try:
-                signal = self.yolo_data.recv()
-                print("Emitter: Получен сигнал от йоло:", signal)
+
+                # signal = self.yolo_data.recv()
+                # print("Emitter: Получен сигнал от йоло:", signal)
             except EOFError:
                 print("Emitter: Что то пошло не так")
             else:
