@@ -14,7 +14,7 @@ class Emitter(QThread):
     def run(self):
         while True:
             try:
-
+                break
                 # signal = self.yolo_data.recv()
                 # print("Emitter: Получен сигнал от йоло:", signal)
             except EOFError:
