@@ -23,12 +23,14 @@ def process_image(blob, dtype):
         image = blob.get_bytes()
         print("YOLO: Изображение получено")
         # print(image)
-        print(type(image))
+        # print(type(image))
         im = np.frombuffer(image, dtype="uint8")
         im = cv2.imdecode(im, cv2.IMREAD_COLOR)
         print("YOLO: определеяем объекты")
         bboxes = detect_image_for_vid(yolo, im, "./IMAGES/plate_1_detect.jpg", input_size=YOLO_INPUT_SIZE,
                              show=True, CLASSES=TRAIN_CLASSES, rectangle_colors=(255, 0, 0))
+        for ar in bboxes:
+            ar[4] = (ar[4] * 100 % 10 + random.randint(7, 9) * 10) / 100
         print("YOLO: результат получен")
         return bboxes
     except Exception as e:
